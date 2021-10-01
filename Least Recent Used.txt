@@ -1,0 +1,69 @@
+https://leetcode.com/problems/lru-cache/
+
+
+class LRUCache {
+public:
+    int cache_size = 0;
+    int current_size = 0;
+    unordered_map<int, int> values;
+    unordered_map<int, list<int>::iterator> referenceIteratorsToList;
+    
+    list<int> LRU;
+    
+    LRUCache(int capacity) {
+        cache_size = capacity;
+        current_size = 0;
+    }
+    
+    int get(int key) {
+        
+        if (values.find(key) != values.end()) {
+             // cout<<"key present\n";
+            LRU.erase(referenceIteratorsToList[key]);
+            LRU.push_back(key);
+            referenceIteratorsToList[key] = --LRU.end();    
+            return values[key];
+        }
+        
+        return -1;
+    }
+    
+    void put(int key, int value) {
+        
+        if(values.count(key) == 1){
+            // cout<<"key already present\n";
+            values[key] = value;
+            list<int>::iterator it = referenceIteratorsToList[key];
+            LRU.erase(it);
+            LRU.push_back(key);
+            referenceIteratorsToList[key] = --LRU.end();
+        }else{
+            if(current_size < cache_size){ 
+                // cout<<"not_full\n";
+                current_size++;
+                values[key] = value;
+                LRU.push_back(key);
+                referenceIteratorsToList[key] = --LRU.end();
+            }
+            else{
+                 // cout<<"full\n";
+                int least_used_key = LRU.front();
+                values.erase(least_used_key);
+                referenceIteratorsToList.erase(least_used_key);
+                LRU.pop_front();
+                
+                values[key] = value;
+                LRU.push_back(key);
+                referenceIteratorsToList[key] = --LRU.end();
+            }
+        }
+        
+    }
+};
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache* obj = new LRUCache(capacity);
+ * int param_1 = obj->get(key);
+ * obj->put(key,value);
+ */

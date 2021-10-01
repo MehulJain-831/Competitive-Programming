@@ -1,0 +1,84 @@
+https://leetcode.com/problems/smallest-missing-genetic-value-in-each-subtree/
+
+
+struct UnionFind {
+	int n;
+	vector<int> rank;
+	vector<int> parent;
+	UnionFind(int n) {
+		rank.resize(n);
+		fill(rank.begin(), rank.end(), 0);
+		parent.resize(n);
+		for (int i = 0; i < n; i++) {
+			parent[i] = i;
+		}
+	}
+	int get(int a) {
+		return parent[a] = (parent[a] == a ? a : get(parent[a]));
+	}
+	void merge(int a, int b) {
+		a = get(a);
+		b = get(b);
+		if (a == b) {
+			return;
+		}
+		if (rank[a] == rank[b]) {
+			rank[a]++;
+		}
+		if (rank[a] > rank[b]) {
+			parent[b] = a;
+		} else {
+			parent[a] = b;
+		}
+	}
+};
+
+pair<int, int> dfs(int node, vector<vector<int>> &adj, vector<int>& parents, vector<int>& nums, vector<int> &ans, UnionFind* uf){
+    
+    int cur_ans = 1;
+    
+    for(int i = 0 ; i < adj[node].size() ; i++){
+        int child = adj[node][i];
+        if(child != parents[node]){
+            pair<int, int> info =  dfs(child, adj, parents, nums, ans, uf);
+            cur_ans = max(cur_ans, info.first);
+            uf->merge(info.second, nums[node]);
+        }
+    }
+    
+    int parFind = uf->get(nums[node]);
+    
+    while(uf->get(cur_ans) == parFind){
+        cur_ans++;
+    }
+    
+    ans[node] = cur_ans;
+    
+    return make_pair(cur_ans, parFind);
+    
+}
+
+class Solution {
+public:
+    vector<int> smallestMissingValueSubtree(vector<int>& parents, vector<int>& nums) {
+        
+        int n = parents.size();
+        
+        vector<vector<int>> adj(n);
+        
+        for(int i = 1 ; i < parents.size() ; i++){
+            int u = parents[i];
+            int v = i;
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+        }
+        
+        UnionFind* uf = new UnionFind(n + 10);
+        
+        vector<int> ans(n , 1);
+        
+        dfs(0, adj, parents, nums, ans, uf);  
+        
+        return ans;
+    }
+};
